@@ -97,7 +97,7 @@ class Files {
 
                 if ($this->verbose) {
                     $time = date('H:i:s');
-                    echo "[{$time}] \e[92mCREATE ZIP[0m" . PHP_EOL;
+                    echo "[{$time}] \e[92mCREATE ZIP\e[0m" . PHP_EOL;
                 }
 
                 Tools::zipDir($backup_path_files, "{$backup_path}/files.zip");

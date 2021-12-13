@@ -60,17 +60,20 @@ class Files {
                 }
 
                 register_shutdown_function(function() use ($backup_path_files) {
-                    if ($this->verbose) {
-                        $time = date('H:i:s');
-                        echo "[{$time}] \e[92mREMOVE TMP DIR:\e[0m {$backup_path_files}" . PHP_EOL;
+                    if (is_dir($backup_path_files)) {
+                        if ($this->verbose) {
+                            $time = date('H:i:s');
+                            echo "[{$time}] \e[92mREMOVE TMP DIR:\e[0m {$backup_path_files}" . PHP_EOL;
+                        }
+                        Tools::removeDir($backup_path_files);
                     }
-                    Tools::removeDir($backup_path_files);
                 });
 
 
                 foreach ($files as $file_path) {
                     if (substr($file_path, 0, 1) !== '/') {
-                        echo "\e[93mFile skipped, address must start with /. {$file_path}\e[0m" . PHP_EOL;
+                        $time = date('H:i:s');
+                        echo "[{$time}] \e[93mFile skipped, address must start with /. {$file_path}\e[0m" . PHP_EOL;
                         continue;
                     }
 
@@ -81,7 +84,8 @@ class Files {
                     }
 
                     if ( ! is_file($file_path) && ! is_dir($file_path)) {
-                        echo "\e[93mFile not found: {$file_path}\e[0m" . PHP_EOL;
+                        $time = date('H:i:s');
+                        echo "[{$time}] \e[93mFile not found: {$file_path}\e[0m" . PHP_EOL;
                         continue;
                     }
 
@@ -101,6 +105,13 @@ class Files {
                 }
 
                 Tools::zipDir($backup_path_files, "{$backup_path}/files.zip");
+
+                if ($this->verbose) {
+                    $time = date('H:i:s');
+                    echo "[{$time}] \e[92mREMOVE TMP DIR:\e[0m {$backup_path_files}" . PHP_EOL;
+                }
+
+                Tools::removeDir($backup_path_files);
 
             } else {
                 throw new \Exception("Failed to create directory: {$backup_path_files}");

@@ -67,11 +67,13 @@ class Files {
 
 
         register_shutdown_function(function () use ($backup_path_files) {
-            if ($this->verbose) {
-                $time = date('H:i:s');
-                echo "[{$time}] \e[92mREMOVE TMP DIR:\e[0m {$backup_path_files}\e[0m" . PHP_EOL;
+            if (is_dir($backup_path_files)) {
+                if ($this->verbose) {
+                    $time = date('H:i:s');
+                    echo "[{$time}] \e[92mREMOVE TMP DIR:\e[0m {$backup_path_files}\e[0m" . PHP_EOL;
+                }
+                Tools::removeDir($backup_path_files);
             }
-            Tools::removeDir($backup_path_files);
         });
 
 
@@ -116,6 +118,13 @@ class Files {
         }
 
         Tools::zipDir($backup_path_files, "{$backup_path}/files.zip");
+
+
+        if ($this->verbose) {
+            $time = date('H:i:s');
+            echo "[{$time}] \e[92mREMOVE TMP DIR:\e[0m {$backup_path_files}\e[0m" . PHP_EOL;
+        }
+        Tools::removeDir($backup_path_files);
 
         return true;
     }

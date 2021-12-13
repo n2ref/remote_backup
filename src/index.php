@@ -53,12 +53,20 @@ if (PHP_SAPI === 'cli') {
                 throw new \Exception("Incorrect parameter host: Empty");
             }
 
+            if ($host == 'general') {
+                throw new \Exception("Incorrect parameter host: General is a reserved word");
+            }
+
             $config_file = realpath($config_file);
 
             $backup = new \RemoteBackup\Backup($config_file, $verbose);
             $backup->dispatcher($host);
 
 
+            if ($verbose) {
+                $time = date('H:i:s');
+                echo "[{$time}] \e[92mDone.\e[0m" . PHP_EOL;
+            }
 
         } catch (Exception $e) {
             $time = date('H:i:s');
@@ -73,8 +81,8 @@ if (PHP_SAPI === 'cli') {
             "\t-h\t--host\t\tHost name in config file",
             "\t-c\t--config\tPath to config file. Default conf.ini",
             'Optional arguments:',
-            "--help\t\tHelp info",
-            "--verbose\tVerbose info",
+            "\t--help\t\tHelp info",
+            "\t--verbose\tVerbose info",
             "Examples of usage:",
             "php remote_backup.phar --host orange --config conf.ini --verbose",
             "php remote_backup.phar --host orange",
@@ -82,8 +90,6 @@ if (PHP_SAPI === 'cli') {
         ]) . PHP_EOL;
     }
 
-    echo 'Done.' . PHP_EOL;
-
 } else {
-    echo 'Cli only';
+    echo "\e[91mCli only\e[0m";
 }

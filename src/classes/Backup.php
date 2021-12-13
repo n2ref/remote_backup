@@ -58,7 +58,7 @@ class Backup {
                     foreach ($config_hosts as $host_name => $config_host) {
                         try {
                             if ( ! in_array($host_name, ['general'])) {
-                                $this->backupHost($config_host, $host);
+                                $this->backupHost($config_host, $host_name);
                             }
 
                         } catch (\Exception $e) {

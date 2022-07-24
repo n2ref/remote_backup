@@ -183,6 +183,18 @@ class Backup {
             }
 
 
+            if ( ! empty($config_host['remote']['files'])) {
+                $files = new Remote\Files(
+                    $config_host['dump']['dir'],
+                    $config_host['dump']['name'],
+                    $this->verbose
+                );
+
+                $files->startBackup(
+                    $sftp,
+                    $config_host['remote']['files']
+                );
+            }
 
 
             if ( ! empty($config_host['remote']['mysql']) &&
@@ -197,19 +209,6 @@ class Backup {
                 $mysql->startBackup(
                     $sftp,
                     $config_host['remote']['mysql']
-                );
-            }
-
-            if ( ! empty($config_host['remote']['files'])) {
-                $files = new Remote\Files(
-                    $config_host['dump']['dir'],
-                    $config_host['dump']['name'],
-                    $this->verbose
-                );
-
-                $files->startBackup(
-                    $sftp,
-                    $config_host['remote']['files']
                 );
             }
         }
@@ -247,7 +246,7 @@ class Backup {
     private function connectSFTP(array $conf_ssh): SFTP {
 
         $port = $conf_ssh['port'] ?? 22;
-        $sftp = new SFTP($conf_ssh['host'], $port);
+        $sftp = new SFTP($conf_ssh['host'], $port, 3600);
         switch ($conf_ssh['auth_method']) {
             case 'pass':
                 if (empty($conf_ssh['pass'])) {

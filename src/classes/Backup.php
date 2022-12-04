@@ -9,6 +9,7 @@ use phpseclib\System\SSH\Agent;
 require_once __DIR__ . '/../vendor/autoload.php';
 require_once 'Tools.php';
 require_once 'Local/Files.php';
+require_once 'Local/Mysql.php';
 require_once 'Remote/Files.php';
 require_once 'Remote/Mysql.php';
 
@@ -151,6 +152,18 @@ class Backup {
                 );
                 $files->startBackup($config_host['local']['files']);
             }
+
+            if ( ! empty($config_host['local']['mysql']) &&
+                isset($config_host['local']['mysql']['on']) &&
+                $config_host['local']['mysql']['on']
+            ) {
+                $mysql = new Local\Mysql(
+                    $config_host['dump']['dir'],
+                    $config_host['dump']['name'],
+                    $this->verbose
+                );
+                $mysql->startBackup($config_host['local']['mysql']);
+            }
         }
 
 
@@ -246,7 +259,7 @@ class Backup {
     private function connectSFTP(array $conf_ssh): SFTP {
 
         $port = $conf_ssh['port'] ?? 22;
-        $sftp = new SFTP($conf_ssh['host'], $port, 3600);
+        $sftp = new SFTP($conf_ssh['host'], $port, 18000);
         switch ($conf_ssh['auth_method']) {
             case 'pass':
                 if (empty($conf_ssh['pass'])) {

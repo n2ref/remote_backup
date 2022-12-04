@@ -1,5 +1,8 @@
 {
   "require" : {
+    "ext-mbstring": "*",
+    "ext-zlib": "*",
+    "ext-xml": "*",
     "phpseclib/phpseclib" : "2.0.*"
   }
 }

@@ -135,6 +135,24 @@ class Backup {
             throw new \Exception("Empty dump.count param in config file, section [{$host}]");
         }
 
+        if ( ! empty($config_host['schedule'])) {
+            if ( ! empty($config_host['schedule']['week_days']) &&
+                is_string($config_host['schedule']['week_days'])
+            ) {
+                $week_days = explode(',', $config_host['schedule']['week_days']);
+                $week_days = array_map('trim', $week_days);
+                $week_days = array_map('strtolower', $week_days);
+
+                if ( ! in_array(strtolower(date('D')), $week_days)) {
+                    if ($this->verbose) {
+                        $time = date('H:i:s');
+                        echo "[{$time}] \e[92mSCHEDULE BREAK:\e[0m week days active - " . implode(', ', $week_days) . PHP_EOL;
+                    }
+                    return;
+                }
+            }
+        }
+
         $config_host['dump']['dir']  = rtrim($config_host['dump']['dir'], '/');
         $config_host['dump']['name'] = str_replace([
             '%Y', '%m', '%d', '%H', '%i', '%s',

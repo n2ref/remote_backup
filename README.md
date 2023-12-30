@@ -44,9 +44,24 @@ local.files.3 = /file/path/3
 local.files.4 = /var/www
 
 [server1]
+; list active days, comma separator. Default - All
+; mon, tue, wed, thu, fri, sat, sun
+schedule.week_days = sat
+
 dump.dir   = /mnt/backup/server1/
 dump.name  = %Y-%m-%d_%H
 dump.count = 7
+
+local.mysql.on   = true
+local.mysql.host = 192.168.1.2
+local.mysql.port = 3306
+local.mysql.user = root
+local.mysql.pass = 
+local.mysql.mysqldump_path = mysqldump
+local.mysql.gzip_path      = gzip
+; list backup databases, comma separator. Default - All
+local.mysql.databases      =
+
 
 remote.ssh.host = 192.168.1.5
 remote.ssh.port = 22

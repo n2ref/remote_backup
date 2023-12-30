@@ -56,9 +56,8 @@ class Mysql {
         if ( ! empty($databases)) {
             $databases = explode(",", $databases);
             $databases = array_map('trim', $databases);
-            $databases = implode(' ', $databases);
         } else {
-            $databases = ' -A ';
+            $databases = $this->getDatabases($mysql);
         }
 
         if ( ! empty($port)) {
@@ -73,16 +72,42 @@ class Mysql {
             $pass = '';
         }
 
+        foreach ($databases as $database) {
+            $dump_path = "{$backup_path}/mysql_{$database}.sql.gz";
+
+            if ($this->verbose) {
+                $time = date('H:i:s');
+                echo "[{$time}] \e[92mCREATE MYSQL DUMP\e[0m {$dump_path}" . PHP_EOL;
+            }
+
+            $cmd = sprintf(
+                " %s -u %s %s -h %s %s %s | %s > %s",
+                $mysqldump_path, $mysql['user'], $pass, $mysql['host'], $port, $database, $gzip_path, $dump_path
+            );
+
+            exec($cmd);
+        }
+    }
+
+
+    /**
+     * Получение всех доступных названий баз данных
+     * @return array
+     */
+    private function getDatabases(array $mysql) {
+
+        $user = ! empty($mysql['user']) ? $mysql['user'] : null;
+        $pass = ! empty($mysql['pass']) ? $mysql['pass'] : null;
+        $host = ! empty($mysql['host']) ? $mysql['host'] : 'localhost';
+
         if ($this->verbose) {
             $time = date('H:i:s');
-            echo "[{$time}] \e[92mCREATE MYSQL DUMP\e[0m {$backup_path}/mysql_dump.sql.gz" . PHP_EOL;
+            echo "[{$time}] \e[92mSHOW MYSQL DATABASES\e[0m " . PHP_EOL;
         }
 
-        $cmd = sprintf(
-            " %s -u %s %s -h %s %s %s | %s > %s/mysql_dump.sql.gz",
-            $mysqldump_path, $mysql['user'], $pass, $mysql['host'], $port, $databases, $gzip_path, $backup_path
-        );
+        $dbh = new \PDO( "mysql:host={$host}", $user, $pass);
+        $dbs = $dbh->query('SHOW DATABASES');
 
-        exec($cmd);
+        return $dbs->fetchAll(\PDO::FETCH_COLUMN, 0);
     }
 }

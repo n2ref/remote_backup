@@ -193,7 +193,6 @@ class Tools {
 
 
         if (isset($options['method']) && strtoupper($options['method']) == 'SMTP') {
-
             $options['smtp']['host']    = isset($options['smtp']['host']) && trim($options['smtp']['host']) != '' ? $options['smtp']['host'] : $options['server_name'];
             $options['smtp']['port']    = isset($options['smtp']['port']) && (int)($options['smtp']['port']) > 0  ? $options['smtp']['port'] : 25;
             $options['smtp']['secure']  = isset($options['smtp']['secure']) ? $options['smtp']['secure'] : '';

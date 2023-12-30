@@ -3,6 +3,8 @@
     "ext-mbstring": "*",
     "ext-zlib": "*",
     "ext-xml": "*",
+    "ext-mysql": "*",
+    "ext-pdo": "*",
     "phpseclib/phpseclib" : "2.0.*"
   }
 }

@@ -57,7 +57,8 @@ local.mysql.host = 192.168.1.2
 local.mysql.port = 3306
 local.mysql.user = root
 local.mysql.pass = 
-local.mysql.mysqldump_path = mysqldump
+local.mysql.mysqldump_path    = mysqldump
+local.mysql.mysqldump_options = --quick --max_allowed_packet=1G --compress
 local.mysql.gzip_path      = gzip
 ; list backup databases, comma separator. Default - All
 local.mysql.databases      =
@@ -78,11 +79,12 @@ remote.mysql.host = localhost
 remote.mysql.port = 3306
 remote.mysql.user = root
 remote.mysql.pass =
-remote.mysql.mysqldump_path = mysqldump
-remote.mysql.gzip_path      = gzip
-remote.mysql.tmp_dir        = /tmp
+remote.mysql.mysqldump_path    = mysqldump
+remote.mysql.mysqldump_options = --quick --max_allowed_packet=1G --compress
+remote.mysql.gzip_path         = gzip
+remote.mysql.tmp_dir           = /tmp
 ; list backup databases, comma separator. Default - All
-remote.mysql.databases      =
+remote.mysql.databases         =
 
 remote.files.1 = /etc/crontab
 remote.files.2 = /etc/nginx/sites-available
@@ -99,7 +101,7 @@ To start, you can run the script manually or through cron.
 ### Example of work
 
 ```
-$ php7.4 /opt/remote_backup.phar -h server1 -c /opt/conf.ini --verbose
+$ php8.0 /opt/remote_backup.phar -h server1 -c /opt/conf.ini --verbose
 [16:31:47] BACKUP HOST: server1
 [16:31:48] CREATE MYSQL DUMP
 [16:31:49] DOWNLOAD MYSQL DUMP: /tmp/backup_2021-12-11_16.sql.gz ---> /mnt/backup/server1/2021-12-11_16/mysql_dump.sql.gz

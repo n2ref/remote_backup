@@ -10,9 +10,10 @@ use RemoteBackup\Tools;
  */
 class Files {
 
-    private $dir     = '';
-    private $name    = '';
-    private $verbose = false;
+    private string $dir      = '';
+    private string $name     = '';
+    private bool   $verbose  = false;
+    private array  $warnings = [];
 
 
     /**
@@ -42,7 +43,7 @@ class Files {
      * @return void
      * @throws \Exception
      */
-    public function startBackup(array $files) {
+    public function startBackup(array $files): void {
 
         if ( ! empty($files)) {
             $backup_path       = rtrim($this->dir, '/') . '/' . trim($this->name, '/');
@@ -72,8 +73,11 @@ class Files {
 
                 foreach ($files as $file_path) {
                     if (substr($file_path, 0, 1) !== '/') {
-                        $time = date('H:i:s');
-                        echo "[{$time}] \e[93mFile skipped, address must start with /. {$file_path}\e[0m" . PHP_EOL;
+                        $time    = date('H:i:s');
+                        $message = "File skipped, address must start with /. {$file_path}";
+                        echo "[{$time}] \e[93m{$message} \e[93m\e[0m" . PHP_EOL;
+
+                        $this->warnings[] = $message;
                         continue;
                     }
 
@@ -84,8 +88,11 @@ class Files {
                     }
 
                     if ( ! is_file($file_path) && ! is_dir($file_path)) {
-                        $time = date('H:i:s');
-                        echo "[{$time}] \e[93mFile not found: {$file_path}\e[0m" . PHP_EOL;
+                        $time    = date('H:i:s');
+                        $message = "File not found: {$file_path}";
+                        echo "[{$time}] \e[93m{$message} \e[93m\e[0m" . PHP_EOL;
+
+                        $this->warnings[] = $message;
                         continue;
                     }
 
@@ -117,6 +124,15 @@ class Files {
                 throw new \Exception("Failed to create directory: {$backup_path_files}");
             }
         }
+    }
+
+
+    /**
+     * @return string|null
+     */
+    public function getWarnings():? string {
+
+        return $this->warnings ? implode(PHP_EOL, $this->warnings) : null;
     }
 
 

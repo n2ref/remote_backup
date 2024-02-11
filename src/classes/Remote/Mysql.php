@@ -10,9 +10,10 @@ use phpseclib\Net\SFTP;
  */
 class Mysql {
 
-    private $dir     = '';
-    private $name    = '';
-    private $verbose = false;
+    private string $dir      = '';
+    private string $name     = '';
+    private bool   $verbose  = false;
+    private array  $warnings = [];
 
 
     /**
@@ -41,7 +42,7 @@ class Mysql {
      * @param array $mysql
      * @return void
      */
-    public function startBackup(SFTP $sftp, array $mysql) {
+    public function startBackup(SFTP $sftp, array $mysql): void {
 
 
         $backup_path = rtrim($this->dir, '/') . '/' . trim($this->name, '/');
@@ -51,12 +52,13 @@ class Mysql {
         }
 
 
-        $mysqldump_path = $mysql['mysqldump_path'] ?? 'mysqldump';
-        $port           = $mysql['port'] ?? '';
-        $pass           = $mysql['pass'] ?? '';
-        $gzip_path      = $mysql['gzip_path'] ?? 'gzip';
-        $tmp_dir        = rtrim($mysql['tmp_dir'] ?? '/tmp', '/');
-        $databases      = $mysql['databases'] ?? [];
+        $mysqldump_path    = $mysql['mysqldump_path'] ?? 'mysqldump';
+        $mysqldump_options = $mysql['mysqldump_options'] ?? '';
+        $port              = $mysql['port'] ?? '';
+        $pass              = $mysql['pass'] ?? '';
+        $gzip_path         = $mysql['gzip_path'] ?? 'gzip';
+        $tmp_dir           = rtrim($mysql['tmp_dir'] ?? '/tmp', '/');
+        $databases         = $mysql['databases'] ?? [];
 
 
         if ( ! empty($databases)) {
@@ -85,8 +87,8 @@ class Mysql {
         }
 
         $sftp->exec(sprintf(
-            " %s -u %s %s -h %s %s %s | %s > %s/backup_%s.sql.gz\n",
-            $mysqldump_path, $mysql['user'], $pass, $mysql['host'], $port, $databases, $gzip_path, $tmp_dir, $this->name,
+            " %s -u %s %s -h %s %s %s %s | %s > %s/backup_%s.sql.gz\n",
+            $mysqldump_path, $mysql['user'], $pass, $mysql['host'], $port, $mysqldump_options, $databases, $gzip_path, $tmp_dir, $this->name,
         ));
 
         if ($this->verbose) {
@@ -106,5 +108,14 @@ class Mysql {
         }
 
         $sftp->delete("{$tmp_dir}/backup_{$this->name}.sql.gz");
+    }
+
+
+    /**
+     * @return string|null
+     */
+    public function getWarnings():? string {
+
+        return $this->warnings ? implode(PHP_EOL, $this->warnings) : null;
     }
 }

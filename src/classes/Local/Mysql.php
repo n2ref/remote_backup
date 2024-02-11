@@ -7,9 +7,10 @@ namespace RemoteBackup\Local;
  */
 class Mysql {
 
-    private $dir     = '';
-    private $name    = '';
-    private $verbose = false;
+    private string $dir      = '';
+    private string $name     = '';
+    private bool   $verbose  = false;
+    private array  $warnings = [];
 
 
     /**
@@ -36,8 +37,9 @@ class Mysql {
     /**
      * @param array $mysql
      * @return void
+     * @throws \Exception
      */
-    public function startBackup(array $mysql) {
+    public function startBackup(array $mysql): void {
 
         $backup_path = rtrim($this->dir, '/') . '/' . trim($this->name, '/');
 
@@ -46,11 +48,12 @@ class Mysql {
         }
 
 
-        $mysqldump_path = $mysql['mysqldump_path'] ?? 'mysqldump';
-        $port           = $mysql['port'] ?? '';
-        $pass           = $mysql['pass'] ?? '';
-        $gzip_path      = $mysql['gzip_path'] ?? 'gzip';
-        $databases      = $mysql['databases'] ?? [];
+        $mysqldump_path    = $mysql['mysqldump_path'] ?? 'mysqldump';
+        $mysqldump_options = $mysql['mysqldump_options'] ?? '';
+        $port              = $mysql['port'] ?? '';
+        $pass              = $mysql['pass'] ?? '';
+        $gzip_path         = $mysql['gzip_path'] ?? 'gzip';
+        $databases         = $mysql['databases'] ?? [];
 
 
         if ( ! empty($databases)) {
@@ -72,6 +75,8 @@ class Mysql {
             $pass = '';
         }
 
+        $database_output = [];
+
         foreach ($databases as $database) {
             $dump_path = "{$backup_path}/mysql_{$database}.sql.gz";
 
@@ -81,12 +86,46 @@ class Mysql {
             }
 
             $cmd = sprintf(
-                " %s -u %s %s -h %s %s %s | %s > %s",
-                $mysqldump_path, $mysql['user'], $pass, $mysql['host'], $port, $database, $gzip_path, $dump_path
+                " %s -u %s %s -h %s %s %s %s | %s > %s",
+                $mysqldump_path, $mysql['user'], $pass, $mysql['host'], $port, $mysqldump_options, $database, $gzip_path, $dump_path
             );
 
-            exec($cmd);
+            exec($cmd, $output);
+            $database_output[$database] = $output;
         }
+
+
+        if ( ! empty($database_output)) {
+            foreach ($database_output as $database => $lines) {
+
+                if ( ! empty($lines)) {
+                    $database_warnings = [];
+
+                    foreach ($lines as $line) {
+                        if ($line != 'mysqldump: [Warning] Using a password on the command line interface can be insecure.') {
+                            $database_warnings[] = $line;
+                        }
+                    }
+
+                    if ( ! empty($database_warnings)) {
+                        $this->warnings[] = "Backup database: {$database}";
+
+                        foreach ($database_warnings as $database_warning) {
+                            $this->warnings[] = $database_warning;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+
+    /**
+     * @return string|null
+     */
+    public function getWarnings():? string {
+
+        return $this->warnings ? implode(PHP_EOL, $this->warnings) : null;
     }
 
 

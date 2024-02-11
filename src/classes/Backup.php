@@ -22,12 +22,17 @@ class Backup {
     /**
      * @var string
      */
-    private $config_file = '';
+    private string $config_file = '';
 
     /**
      * @var bool
      */
-    private $verbose = false;
+    private bool $verbose = false;
+
+    /**
+     * @var array
+     */
+    private array $warnings = [];
 
 
     /**
@@ -46,7 +51,7 @@ class Backup {
      * @param string $host
      * @throws \Exception
      */
-    public function dispatcher(string $host) {
+    public function dispatcher(string $host): void {
 
         $config = Tools::getConfig($this->config_file, 'general');
 
@@ -81,6 +86,20 @@ class Backup {
                 $this->backupHost($config_host, $host);
             }
 
+            if ( ! empty($this->warnings)) {
+                $is_send = Tools::sendMail(
+                    $config['mail']['email'],
+                    'Warnings backup',
+                    nl2br(implode("<br><br>", $this->warnings)),
+                    $config['mail']
+                );
+
+                if ( ! $is_send) {
+                    $time = date('H:i:s');
+                    echo "[{$time}] \e[91mError send email" . PHP_EOL;
+                }
+            }
+
         } catch (\Exception $e) {
             if ( ! empty($config['mail']) &&
                  ! empty($config['mail']['email']) &&
@@ -89,7 +108,7 @@ class Backup {
                 $is_send = Tools::sendMail(
                     $config['mail']['email'],
                     'Error backup',
-                    $e->getMessage(),
+                    $e->getMessage() . nl2br(implode("<br><br>", $this->warnings)),
                     $config['mail']
                 );
 
@@ -111,7 +130,7 @@ class Backup {
      * @return void
      * @throws \Exception
      */
-    private function backupHost(array $config_host, string $host) {
+    private function backupHost(array $config_host, string $host): void {
 
         if ($this->verbose) {
             $time = date('H:i:s');
@@ -169,6 +188,13 @@ class Backup {
                     $this->verbose
                 );
                 $files->startBackup($config_host['local']['files']);
+
+                $warnings = $files->getWarnings();
+
+                if ( ! empty($warnings)) {
+                    $warnings = "Host: {$host}\n{$warnings}";
+                    $this->warnings[] = $warnings;
+                }
             }
 
             if ( ! empty($config_host['local']['mysql']) &&
@@ -181,6 +207,13 @@ class Backup {
                     $this->verbose
                 );
                 $mysql->startBackup($config_host['local']['mysql']);
+
+                $warnings = $mysql->getWarnings();
+
+                if ( ! empty($warnings)) {
+                    $warnings = "Host: {$host}\n{$warnings}";
+                    $this->warnings[] = $warnings;
+                }
             }
         }
 
@@ -221,10 +254,14 @@ class Backup {
                     $this->verbose
                 );
 
-                $files->startBackup(
-                    $sftp,
-                    $config_host['remote']['files']
-                );
+                $files->startBackup($sftp, $config_host['remote']['files']);
+
+                $warnings = $files->getWarnings();
+
+                if ( ! empty($warnings)) {
+                    $warnings = "Host: {$host}\n{$warnings}";
+                    $this->warnings[] = $warnings;
+                }
             }
 
 
@@ -237,10 +274,14 @@ class Backup {
                     $config_host['dump']['name'],
                     $this->verbose
                 );
-                $mysql->startBackup(
-                    $sftp,
-                    $config_host['remote']['mysql']
-                );
+                $mysql->startBackup($sftp, $config_host['remote']['mysql']);
+
+                $warnings = $mysql->getWarnings();
+
+                if ( ! empty($warnings)) {
+                    $warnings = "Host: {$host}\n{$warnings}";
+                    $this->warnings[] = $warnings;
+                }
             }
         }
 

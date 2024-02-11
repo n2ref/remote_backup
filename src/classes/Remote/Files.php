@@ -10,9 +10,10 @@ use RemoteBackup\Tools;
  */
 class Files {
 
-    private $dir     = '';
-    private $name    = '';
-    private $verbose = false;
+    private string $dir      = '';
+    private string $name     = '';
+    private bool   $verbose  = false;
+    private array  $warnings = [];
 
 
     /**
@@ -101,14 +102,20 @@ class Files {
                     );
 
                 } else {
-                    $time = date('H:i:s');
-                    echo "[{$time}] \e[93mFile not found: {$file_path}\e[0m" . PHP_EOL;
+                    $time    = date('H:i:s');
+                    $message = "File not found: {$file_path}";
+                    echo "[{$time}] \e[93m{$message}\e[0m" . PHP_EOL;
+
+                    $this->warnings[] = $message;
                 }
 
 
             } else {
-                $time = date('H:i:s');
-                echo "[{$time}] \e[93mFile skipped, address must start with /. {$file_path}\e[0m" . PHP_EOL;
+                $time    = date('H:i:s');
+                $message = "File skipped, address must start with /. {$file_path}";
+                echo "[{$time}] \e[93m{$message}\e[0m" . PHP_EOL;
+
+                $this->warnings[] = $message;
             }
         }
 
@@ -127,6 +134,15 @@ class Files {
         Tools::removeDir($backup_path_files);
 
         return true;
+    }
+
+
+    /**
+     * @return string|null
+     */
+    public function getWarnings():? string {
+
+        return $this->warnings ? implode(PHP_EOL, $this->warnings) : null;
     }
 
 
